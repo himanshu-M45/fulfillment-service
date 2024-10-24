@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package fulfillment_service;
+
+option go_package = "/proto;fulfillment_service";
+
+service FulfillmentService {
+  rpc AddDeliveryExecutive (AddDERequest) returns (AddDEResponse);
+  rpc AssignDE (AssignDERequest) returns (AssignDEResponse);
+  rpc UpdateOrderStatus (UpdateStatusRequest) returns (UpdateStatusResponse);
+}
+
+message AddDERequest {
+  string location = 1;
+}
+
+message AddDEResponse {
+  string message = 1;
+}
+
+message AssignDERequest {
+  int32 orderId = 1;
+}
+
+message AssignDEResponse {
+  string message = 1;
+}
+
+message UpdateStatusRequest {
+  int32 deliveryExecutiveId = 1;
+  string status = 2;
+}
+
+message UpdateStatusResponse {
+  string message = 1;
+}
