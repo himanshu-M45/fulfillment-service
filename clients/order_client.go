@@ -7,6 +7,11 @@ import (
 	"net/http"
 )
 
+type OrderClient interface {
+	CheckOrderCredibility(orderID int32) (string, error)
+	UpdateOrderStatus(orderID int32, status string) (string, error)
+}
+
 // Order represents the structure of the order data
 type Order struct {
 	ID              int         `json:"id"`
@@ -21,9 +26,9 @@ type Order struct {
 type OrderStatus string
 
 const (
-	DE_ALLOCATED     OrderStatus = "DE_ALLOCATED"
-	OUT_FOR_DELIVERY OrderStatus = "OUT_FOR_DELIVERY"
-	DELIVERED        OrderStatus = "DELIVERED"
+	DeAllocated    OrderStatus = "DE_ALLOCATED"
+	OutForDelivery OrderStatus = "OUT_FOR_DELIVERY"
+	DELIVERED      OrderStatus = "DELIVERED"
 )
 
 // CheckOrderCredibility checks if an order is available for DE assignment
@@ -62,7 +67,7 @@ func CheckOrderCredibility(orderId int32) (string, error) {
 }
 
 func UpdateOrderStatus(orderId int32, status OrderStatus) (*proto.UpdateStatusResponse, error) {
-	url := fmt.Sprintf("http://localhost:8081/orders/%d/status?status=%s", orderId, status)
+	url := fmt.Sprintf("http://localhost:8081/orders/%d?status=%s", orderId, status)
 
 	request, err := http.NewRequest(http.MethodPut, url, nil)
 	if err != nil {

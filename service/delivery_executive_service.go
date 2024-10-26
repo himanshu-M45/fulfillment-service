@@ -38,7 +38,7 @@ func AssignDeliveryExecutive(orderID int32, deliveryExecutiveId int32) error {
 	}
 
 	// Update Order status
-	_, err = clients.UpdateOrderStatus(orderID, clients.DE_ALLOCATED)
+	_, err = clients.UpdateOrderStatus(orderID, clients.DeAllocated)
 	if err != nil {
 		return fmt.Errorf("failed to update order status: %v", err)
 	}

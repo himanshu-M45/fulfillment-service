@@ -7,6 +7,14 @@ import (
 	"log"
 )
 
+// Database is an interface that abstracts the database operations.
+type Database interface {
+	Ping() error
+	Query(query string, args ...interface{}) (*sql.Rows, error)
+	QueryRow(query string, args ...interface{}) *sql.Row
+	Exec(query string, args ...interface{}) (sql.Result, error)
+}
+
 var db *sql.DB
 
 func InitDB(dataSourceName string) {
