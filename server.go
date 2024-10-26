@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fulfillment-service/controllers"
 	"fulfillment-service/db"
 	proto "fulfillment-service/proto"
 	_ "github.com/lib/pq"
@@ -28,7 +29,7 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer()
-	proto.RegisterFulfillmentServiceServer(grpcServer, &Server{})
+	proto.RegisterFulfillmentServiceServer(grpcServer, &controllers.Server{})
 
 	log.Printf("Server listening at %v", lis.Addr())
 	if err := grpcServer.Serve(lis); err != nil {
