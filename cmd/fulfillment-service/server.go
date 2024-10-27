@@ -1,8 +1,8 @@
-package main
+package server
 
 import (
-	"fulfillment-service/controllers"
-	"fulfillment-service/db"
+	"fulfillment-service/internal/app/fs/controllers"
+	"fulfillment-service/internal/app/fs/db"
 	proto "fulfillment-service/proto"
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
@@ -14,7 +14,7 @@ const (
 	port = ":50052"
 )
 
-func main() {
+func RunServer() {
 	// Database connection
 	dataSourceName := "user=fulfill_user password=your_password dbname=fulfill_db sslmode=disable"
 	db.InitDB(dataSourceName)

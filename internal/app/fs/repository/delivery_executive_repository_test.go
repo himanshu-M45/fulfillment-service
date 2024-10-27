@@ -2,7 +2,7 @@ package repository
 
 import (
 	"errors"
-	"fulfillment-service/mocks"
+	"fulfillment-service/internal/app/fs/mocks"
 	"testing"
 
 	"github.com/golang/mock/gomock"

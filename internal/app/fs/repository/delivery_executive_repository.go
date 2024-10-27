@@ -3,14 +3,14 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"fulfillment-service/db"
+	"fulfillment-service/internal/app/fs/db"
 )
 
 // DeliveryExecutiveRepository is an interface for interacting with the Delivery Executive database
 type DeliveryExecutiveRepository interface {
 	SaveDeliveryExecutive(location string) (int, error)
-	GetDeliveryExecutive(id int32) (bool, int32, error)
-	UpdateDeliveryExecutiveStatus(isAvailable bool, orderID int32, deliveryExecutiveId int32) error
+	GetDeliveryExecutive(id int) (bool, int, error)
+	UpdateDeliveryExecutiveStatus(isAvailable bool, orderID int, deliveryExecutiveId int) error
 }
 
 // getDBConnection retrieves the database connection and handles the error
@@ -47,7 +47,7 @@ func SaveDeliveryExecutive(location string) (int, error) {
 // 1. Get the database connection
 // 2. Prepare the query to retrieve the Delivery Executive
 // 3. Execute the query and return the Delivery Executive
-func GetDeliveryExecutive(deliveryExecutiveId int32) (bool, int, error) {
+func GetDeliveryExecutive(deliveryExecutiveId int) (bool, int, error) {
 	database, err := getDBConnection()
 	if err != nil {
 		return false, 0, fmt.Errorf("failed to get database connection: %v", err)
@@ -67,7 +67,7 @@ func GetDeliveryExecutive(deliveryExecutiveId int32) (bool, int, error) {
 // 1. Get the database connection
 // 2. Prepare the query to update the Delivery Executive status
 // 3. Execute the query and return the result
-func UpdateDeliveryExecutiveStatus(isAvailable bool, orderID int32, deliveryExecutiveId int32) error {
+func UpdateDeliveryExecutiveStatus(isAvailable bool, orderID int, deliveryExecutiveId int) error {
 	database, err := getDBConnection()
 	if err != nil {
 		return fmt.Errorf("failed to get database connection: %v", err)

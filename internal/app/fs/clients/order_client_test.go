@@ -44,7 +44,7 @@ func TestCheckOrderCredibility_OrderNotAvailable(t *testing.T) {
 
 // ----------------------------------------------------------
 func TestUpdateOrderStatus_Success(t *testing.T) {
-	response, err := UpdateOrderStatus(18, OutForDelivery)
+	response, err := UpdateOrderStatus(18, OUT_FOR_DELIVERY)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
