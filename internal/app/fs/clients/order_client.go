@@ -7,11 +7,6 @@ import (
 	"net/http"
 )
 
-type OrderClient interface {
-	CheckOrderCredibility(orderID int) (string, error)
-	UpdateOrderStatus(orderID int, status string) (string, error)
-}
-
 // Order represents the structure of the order data
 type Order struct {
 	ID              int         `json:"id"`

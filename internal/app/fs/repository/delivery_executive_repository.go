@@ -6,13 +6,6 @@ import (
 	"fulfillment-service/internal/app/fs/db"
 )
 
-// DeliveryExecutiveRepository is an interface for interacting with the Delivery Executive database
-type DeliveryExecutiveRepository interface {
-	SaveDeliveryExecutive(location string) (int, error)
-	GetDeliveryExecutive(id int) (bool, int, error)
-	UpdateDeliveryExecutiveStatus(isAvailable bool, orderID int, deliveryExecutiveId int) error
-}
-
 // getDBConnection retrieves the database connection and handles the error
 // 1. Get the database connection
 // 2. Return the database connection or an error
