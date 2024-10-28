@@ -1,75 +1,62 @@
 package repository
 
 import (
-	"database/sql"
 	"fmt"
 	"fulfillment-service/internal/app/fs/db"
+	"fulfillment-service/internal/app/fs/models"
 )
-
-// getDBConnection retrieves the database connection and handles the error
-// 1. Get the database connection
-// 2. Return the database connection or an error
-func getDBConnection() (*sql.DB, error) {
-	database := db.GetDB()
-	if database == nil {
-		return nil, fmt.Errorf("failed to connect to the database")
-	}
-	return database, nil
-}
 
 // SaveDeliveryExecutive inserts a new Delivery Executive into the database
 // 1. Get the database connection
-// 2. Prepare the query to insert the Delivery Executive
-// 3. Execute the query and return the ID of the newly inserted Delivery Executive
+// 2. Create a new Delivery Executive with the provided location
+// 3. Insert the Delivery Executive into the database
+// 4. Return the ID of the newly created Delivery Executive
 func SaveDeliveryExecutive(location string) (int, error) {
-	database, err := getDBConnection()
-	if err != nil {
-		return 0, fmt.Errorf("failed to get database connection: %v", err)
+	database := db.GetDB()
+	if database == nil {
+		return -1, fmt.Errorf("failed to get database connection")
 	}
-
-	query := "INSERT INTO delivery_executives (location, is_available, assigned_order_id) VALUES ($1, $2, $3) RETURNING id"
-	var id int
-	err = database.QueryRow(query, location, true, -1).Scan(&id)
-	if err != nil {
-		return 0, fmt.Errorf("failed to add Delivery Executive: %v", err)
+	deliveryExecutive := models.DeliveryExecutive{
+		Location:        location,
+		IsAvailable:     true,
+		AssignedOrderId: -1,
 	}
-	return id, nil
+	result := database.Create(&deliveryExecutive)
+	if result.Error != nil {
+		return 0, result.Error
+	}
+	return deliveryExecutive.ID, nil
 }
 
 // GetDeliveryExecutive retrieves a Delivery Executive by ID
 // 1. Get the database connection
-// 2. Prepare the query to retrieve the Delivery Executive
-// 3. Execute the query and return the Delivery Executive
+// 2. Query the database for the Delivery Executive with the provided ID
+// 3. Return the Delivery Executive's availability and assigned order ID
 func GetDeliveryExecutive(deliveryExecutiveId int) (bool, int, error) {
-	database, err := getDBConnection()
-	if err != nil {
-		return false, 0, fmt.Errorf("failed to get database connection: %v", err)
+	database := db.GetDB()
+	if database == nil {
+		return false, 0, fmt.Errorf("failed to get database connection")
 	}
-
-	var isAvailable bool
-	var assignedOrderID int
-	query := "SELECT is_available, assigned_order_id FROM delivery_executives WHERE id = $1"
-	err = database.QueryRow(query, deliveryExecutiveId).Scan(&isAvailable, &assignedOrderID)
-	if err != nil {
-		return false, 0, fmt.Errorf("failed to retrieve Delivery Executive: %v", err)
+	var deliveryExecutive models.DeliveryExecutive
+	result := database.First(&deliveryExecutive, deliveryExecutiveId)
+	if result.Error != nil {
+		return false, 0, result.Error
 	}
-	return isAvailable, assignedOrderID, nil
+	return deliveryExecutive.IsAvailable, deliveryExecutive.AssignedOrderId, nil
 }
 
 // UpdateDeliveryExecutiveStatus updates the status of a Delivery Executive
 // 1. Get the database connection
-// 2. Prepare the query to update the Delivery Executive status
-// 3. Execute the query and return the result
+// 2. Update the Delivery Executive's availability and assigned order ID
+// 3. Return any errors that occur during the update
 func UpdateDeliveryExecutiveStatus(isAvailable bool, orderID int, deliveryExecutiveId int) error {
-	database, err := getDBConnection()
-	if err != nil {
-		return fmt.Errorf("failed to get database connection: %v", err)
+	database := db.GetDB()
+	if database == nil {
+		return fmt.Errorf("failed to get database connection")
 	}
-
-	updateQuery := "UPDATE delivery_executives SET is_available = $1, assigned_order_id = $2 WHERE id = $3"
-	_, err = database.Exec(updateQuery, isAvailable, orderID, deliveryExecutiveId)
-	if err != nil {
-		return fmt.Errorf("failed to update Delivery Executive status: %v", err)
-	}
-	return nil
+	result := database.Model(&models.DeliveryExecutive{}).Where("id = ?", deliveryExecutiveId).Updates(models.DeliveryExecutive{
+		IsAvailable:     isAvailable,
+		AssignedOrderId: orderID,
+	})
+	return result.Error
 }

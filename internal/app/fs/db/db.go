@@ -1,29 +1,29 @@
 package db
 
 import (
-	"database/sql"
-	"fmt"
+	"fulfillment-service/internal/app/fs/models"
 	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 	"log"
 )
 
-var db *sql.DB
+var database *gorm.DB
 
 // InitDB initializes the database connection.
 func InitDB(dataSourceName string) {
 	var err error
-	db, err = sql.Open("postgres", dataSourceName)
+	database, err = gorm.Open(postgres.Open(dataSourceName), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("Error opening database: %v", err)
+		log.Fatalf("Failed to connect to the database: %v", err)
 	}
 
-	err = db.Ping()
+	err = database.AutoMigrate(&models.DeliveryExecutive{})
 	if err != nil {
-		log.Fatalf("Error pinging database: %v", err)
+		log.Fatalf("Failed to run migrations: %v", err)
 	}
-	fmt.Println("Successfully connected to database!")
 }
 
-func GetDB() *sql.DB {
-	return db
+func GetDB() *gorm.DB {
+	return database
 }
