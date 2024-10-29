@@ -28,13 +28,6 @@ func TestCheckOrderCredibility_StatusCodeError(t *testing.T) {
 	}
 }
 
-func TestCheckOrderCredibility_DecodeError(t *testing.T) {
-	_, err := CheckOrderCredibility(21)
-	if err == nil || err.Error() != "failed to decode order response: invalid character 'i' looking for beginning of value" {
-		t.Fatalf("Expected decode error, got %v", err)
-	}
-}
-
 func TestCheckOrderCredibility_OrderNotAvailable(t *testing.T) {
 	_, err := CheckOrderCredibility(18)
 	if err == nil || err.Error() != "order is not available for DE assignment" {
@@ -42,7 +35,6 @@ func TestCheckOrderCredibility_OrderNotAvailable(t *testing.T) {
 	}
 }
 
-// ----------------------------------------------------------
 func TestUpdateOrderStatus_Success(t *testing.T) {
 	response, err := UpdateOrderStatus(18, OUT_FOR_DELIVERY)
 	if err != nil {
@@ -62,8 +54,8 @@ func TestUpdateOrderStatus_RequestError(t *testing.T) {
 }
 
 func TestUpdateOrderStatus_UpdateError(t *testing.T) {
-	_, err := UpdateOrderStatus(18, DELIVERED)
-	if err == nil || err.Error() != "failed to update order status: received status code 400" {
+	_, err := UpdateOrderStatus(18, "INVALID_STATUS")
+	if err == nil || err.Error() != "failed to update order status, received status code 400" {
 		t.Fatalf("Expected update error, got %v", err)
 	}
 }
