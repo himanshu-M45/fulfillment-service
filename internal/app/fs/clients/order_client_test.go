@@ -5,12 +5,12 @@ import (
 )
 
 func TestCheckOrderCredibility_Success(t *testing.T) {
-	result, err := CheckOrderCredibility(21)
+	restaurantId, err := CheckOrderCredibility(21)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
-	if result != "order can be assigned" {
-		t.Fatalf("Expected 'order can be assigned', got %v", result)
+	if restaurantId != 5 {
+		t.Fatalf("Expected restaurant ID 5, got %v", restaurantId)
 	}
 }
 

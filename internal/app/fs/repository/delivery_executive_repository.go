@@ -28,10 +28,23 @@ func SaveDeliveryExecutive(location string) (int, error) {
 	return deliveryExecutive.ID, nil
 }
 
-// GetDeliveryExecutive retrieves a Delivery Executive by ID
+// GetAllDeliveryExecutives retrieves all Delivery Executives from the database
 // 1. Get the database connection
-// 2. Query the database for the Delivery Executive with the provided ID
-// 3. Return the Delivery Executive's availability and assigned order ID
+// 2. Query the database for all Delivery Executives
+// 3. Return the list of Delivery Executives
+func GetAllDeliveryExecutives() ([]models.DeliveryExecutive, error) {
+	database := db.GetDB()
+	if database == nil {
+		return nil, fmt.Errorf("failed to get database connection")
+	}
+	var deliveryExecutives []models.DeliveryExecutive
+	result := database.Find(&deliveryExecutives)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return deliveryExecutives, nil
+}
+
 func GetDeliveryExecutive(deliveryExecutiveId int) (bool, int, error) {
 	database := db.GetDB()
 	if database == nil {
@@ -54,9 +67,9 @@ func UpdateDeliveryExecutiveStatus(isAvailable bool, orderID int, deliveryExecut
 	if database == nil {
 		return fmt.Errorf("failed to get database connection")
 	}
-	result := database.Model(&models.DeliveryExecutive{}).Where("id = ?", deliveryExecutiveId).Updates(models.DeliveryExecutive{
-		IsAvailable:     isAvailable,
-		AssignedOrderId: orderID,
+	result := database.Model(&models.DeliveryExecutive{}).Where("id = ?", deliveryExecutiveId).Updates(map[string]interface{}{
+		"is_available":      isAvailable,
+		"assigned_order_id": orderID,
 	})
 	return result.Error
 }

@@ -25,19 +25,18 @@ func (s *Server) AddDeliveryExecutive(_ context.Context, req *proto.AddDERequest
 }
 
 // AssignDE assigns a Delivery Executive to an order
-// 1. Get the order ID and Delivery Executive ID
+// 1. Get the order ID
 // 2. Assign the Delivery Executive to the order
 // 3. Return a success message
 func (s *Server) AssignDE(_ context.Context, req *proto.AssignDERequest) (*proto.AssignDEResponse, error) {
-	orderID := req.GetOrderId()                         // Get the order ID
-	deliveryExecutiveId := req.GetDeliveryExecutiveId() // Get the Delivery Executive ID
+	orderID := req.GetOrderId() // Get the order ID
 
-	err := service.AssignDeliveryExecutive(int(orderID), int(deliveryExecutiveId)) // Assign the Delivery Executive to the order
+	deliveryExecutiveId, err := service.AssignDeliveryExecutive(int(orderID)) // Assign the Delivery Executive to the order
 	if err != nil {
 		return nil, fmt.Errorf("failed to assign Delivery Executive: %v", err)
 	}
 
-	return &proto.AssignDEResponse{Message: fmt.Sprintf("Delivery Executive assigned to order %d", orderID)}, nil
+	return &proto.AssignDEResponse{Message: fmt.Sprintf("Delivery Executive with Id: %d assigned to order %d", deliveryExecutiveId, orderID)}, nil
 }
 
 // UpdateOrderStatus updates the status of an order

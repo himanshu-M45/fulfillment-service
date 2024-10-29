@@ -5,6 +5,7 @@ import (
 	"fmt"
 	proto "fulfillment-service/proto"
 	"net/http"
+	"strconv"
 )
 
 // Order represents the structure of the order data
@@ -32,39 +33,37 @@ const (
 // 3. Check if the request was successful
 // 4. Decode the response body
 // 5. Check if the order is available for DE assignment
-// 6. Return the response message
-func CheckOrderCredibility(orderId int) (string, error) {
+// 6. Return the restaurant ID
+func CheckOrderCredibility(orderId int) (int, error) {
 	url := fmt.Sprintf("http://localhost:8081/orders/%d", orderId)
 	response, err := http.Get(url)
 	if err != nil {
-		return "", fmt.Errorf("failed to fetch order: %v", err)
+		return 0, fmt.Errorf("failed to fetch order: %v", err)
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("failed to fetch order: received status code %d", response.StatusCode)
+		return 0, fmt.Errorf("failed to fetch order: received status code %d", response.StatusCode)
 	}
 
 	var responseData map[string]interface{}
 	if err := json.NewDecoder(response.Body).Decode(&responseData); err != nil {
-		return "", fmt.Errorf("failed to decode order response: %v", err)
+		return 0, fmt.Errorf("failed to decode order response: %v", err)
 	}
 
-	data := responseData["data"].(map[string]interface{})
-	order := Order{
-		ID:              int(data["orderId"].(float64)),
-		UserID:          int(data["userId"].(float64)),
-		RestaurantID:    int(data["restaurantId"].(float64)),
-		DeliveryAddress: data["deliveryAddress"].(string),
-		TotalPrice:      int(data["price"].(float64)),
-		Status:          OrderStatus(data["status"].(string)),
+	if responseData["data"].(map[string]interface{})["status"].(string) != "ORDER_CREATED" {
+		return 0, fmt.Errorf("order is not available for DE assignment")
 	}
 
-	if order.Status != "ORDER_CREATED" {
-		return "", fmt.Errorf("order is not available for DE assignment")
+	restaurantId, err := strconv.ParseFloat(
+		fmt.Sprintf("%.0f",
+			responseData["data"].(map[string]interface{})["restaurantId"].(float64)),
+		64)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse restaurant ID: %v", err)
 	}
 
-	return "order can be assigned", nil
+	return int(restaurantId), nil
 }
 
 // UpdateOrderStatus updates the status of an order

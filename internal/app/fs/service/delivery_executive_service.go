@@ -3,7 +3,9 @@ package service
 import (
 	"fmt"
 	"fulfillment-service/internal/app/fs/clients"
+	"fulfillment-service/internal/app/fs/models"
 	"fulfillment-service/internal/app/fs/repository"
+	"strings"
 )
 
 // CreateDeliveryExecutive creates a new Delivery Executive into the database
@@ -18,39 +20,58 @@ func CreateDeliveryExecutive(location string) (int, error) {
 }
 
 // AssignDeliveryExecutive assigns a Delivery Executive to an order
-// 1. Check the credibility of the order
-// 2. Get the Delivery Executive details
-// 3. Check if the Delivery Executive is available and not assigned to any order
-// 4. Update the Delivery Executive status
-// 5. Update the Order status
-func AssignDeliveryExecutive(orderID int, deliveryExecutiveId int) error {
+// 1. Check Order credibility
+// 2. Get restaurant address
+// 3. Get all Delivery Executives
+// 4. Find a matching Delivery Executive
+// 5. Update Delivery Executive status
+// 6. Update Order status
+// 7. Return the ID of the assigned Delivery Executive
+func AssignDeliveryExecutive(orderID int) (int, error) {
 	// Check Order credibility
-	message, err := clients.CheckOrderCredibility(orderID)
-	if err != nil && message != "order can be assigned" {
-		return fmt.Errorf("failed to check order credibility: %v", err)
+	restaurantId, err := clients.CheckOrderCredibility(orderID)
+	if err != nil {
+		return -1, fmt.Errorf("failed to check order credibility: %v", err)
 	}
 
-	// Get Delivery Executive details
-	isAvailable, assignedOrderID, err := repository.GetDeliveryExecutive(deliveryExecutiveId)
+	// Get restaurant address
+	restaurantAddress, err := clients.GetRestaurantAddress(restaurantId)
+	if err != nil {
+		return -1, fmt.Errorf("failed to get restaurant address: %v", err)
+	}
 
-	// Check if Delivery Executive is available and not assigned to any order
-	if !isAvailable || assignedOrderID != -1 {
-		return fmt.Errorf("delivery Executive is not available or already assigned to an order")
+	// Get all Delivery Executives
+	deliveryExecutives, err := repository.GetAllDeliveryExecutives()
+	if err != nil {
+		return -1, fmt.Errorf("failed to get delivery executives: %v", err)
+	}
+
+	// Find a matching Delivery Executive
+	var selectedDE *models.DeliveryExecutive
+	for _, de := range deliveryExecutives {
+		if de.IsAvailable && de.AssignedOrderId == -1 && strings.Contains(restaurantAddress, de.Location) {
+			selectedDE = &de
+			break
+		}
+	}
+
+	if selectedDE == nil {
+		return -1, fmt.Errorf("no delivery executive available for the order")
 	}
 
 	// Update Delivery Executive status
-	err = repository.UpdateDeliveryExecutiveStatus(false, orderID, deliveryExecutiveId)
+	err = repository.UpdateDeliveryExecutiveStatus(false, orderID, selectedDE.ID)
 	if err != nil {
-		return fmt.Errorf("failed to update Delivery Executive status: %v", err)
+		return -1, fmt.Errorf("failed to update Delivery Executive status: %v", err)
 	}
 
 	// Update Order status
 	_, err = clients.UpdateOrderStatus(orderID, clients.DE_ALLOCATED)
 	if err != nil {
-		return fmt.Errorf("failed to update order status: %v", err)
+		return -1, fmt.Errorf("failed to update order status: %v", err)
 	}
 
-	return nil
+	return selectedDE.ID, nil
 }
 
 // UpdateOrderStatus updates the status of an order

@@ -20,7 +20,6 @@ message AddDEResponse {
 
 message AssignDERequest {
   int32 orderId = 1;
-  int32 deliveryExecutiveId = 2;
 }
 
 message AssignDEResponse {
